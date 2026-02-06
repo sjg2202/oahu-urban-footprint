@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Oʻahu Tilesets</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.js"></script>
+
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+    #menu {
+      background: #fff;
+      position: absolute;
+      z-index: 1;
+      top: 10px;
+      right: 10px;
+      border-radius: 3px;
+      width: 160px;
+      border: 1px solid rgba(0, 0, 0, 0.4);
+      font-family: 'Open Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    #menu a {
+      font-size: 13px;
+      color: #404040;
+      display: block;
+      margin: 0;
+      padding: 10px;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    #menu a:last-child { border: none; }
+
+    #menu a:hover {
+      background-color: #f8f8f8;
+      color: #404040;
+    }
+
+    #menu a.active {
+      background-color: #3887be;
+      color: #ffffff;
+    }
+
+    #menu a.active:hover { background: #3074a4; }
+
+    #title {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-family: Arial, sans-serif;
+        z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <nav id="menu"></nav>
+  <div id="title">
+    <h3>Built Environment vs Conservation Areas</h3>
+    <p>Oʻahu, Hawaiʻi</p>
+  </div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic2d1aWViIiwiYSI6ImNta3AwZ2Z4ODBjZHIzbW9qb3h3OWVtazIifQ.lwISYmq5Dd3dGcjFibqxwA'; 
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v10', 
+      center: [-157.95, 21.45], // Oʻahu
+      zoom: 11
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
+
+    map.on('load', () => {
+      // Tiles 1-3
+      map.addSource('oahu-basemap-tiles', {
+        type: 'raster',
+        tiles: ['assets/oahu_basemap/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: 'Basemap tiles (QGIS export)'
+      });
+
+      map.addSource('oahu-parks-tiles', {
+        type: 'raster',
+        tiles: ['assets/oahu_public_parks/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: 'City & County of Honolulu Open Data'
+      });
+
+      map.addSource('oahu-combined-tiles', {
+        type: 'raster',
+        tiles: ['assets/oahu_basemap_plus_parks/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: 'Combined tileset (QGIS export)'
+      });
+
+      // Tile 4
+      map.addSource('oahu-theme-tiles', {
+        type: 'raster',
+        tiles: ['assets/oahu_theme/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: 'Theme tiles (Mapbox Studio export)'
+      });
+
+      // Layers
+      map.addLayer({
+        id: 'basemap',
+        type: 'raster',
+        source: 'oahu-basemap-tiles',
+        layout: { visibility: 'none' }
+      });
+
+      map.addLayer({
+        id: 'parks',
+        type: 'raster',
+        source: 'oahu-parks-tiles',
+        layout: { visibility: 'none' }
+      });
+
+      map.addLayer({
+        id: 'combo',
+        type: 'raster',
+        source: 'oahu-combined-tiles',
+        layout: { visibility: 'none' }
+      });
+
+      map.addLayer({
+        id: 'theme',
+        type: 'raster',
+        source: 'oahu-theme-tiles',
+        layout: { visibility: 'none' }
+      });
+    });
+
+  map.on('idle', () => {
+    if (!map.getLayer('basemap') || !map.getLayer('parks') || !map.getLayer('combo') || !map.getLayer('theme')) {
+      return;
+    }
+
+    const toggleableLayerIds = ['basemap', 'parks', 'combo', 'theme'];
+
+    for (const id of toggleableLayerIds) {
+      if (document.getElementById(id)) continue;
+
+      const link = document.createElement('a');
+      link.id = id;
+      link.href = '#';
+      link.textContent = id;
+      link.className = map.getLayoutProperty(id, 'visibility') === 'visible' ? 'active' : '';
+
+      link.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const visibility = map.getLayoutProperty(id, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(id, 'visibility', 'none');
+          this.className = '';
+        } else {
+          map.setLayoutProperty(id, 'visibility', 'visible');
+          this.className = 'active';
+        }
+      };
+
+      document.getElementById('menu').appendChild(link);
+    }
+  });
+  </script>
+</body>
+</html>
