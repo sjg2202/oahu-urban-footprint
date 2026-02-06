@@ -1,6 +1,6 @@
 # GEOG 458 Lab 4: O'ahu Map Tiles
 *By Shayla Guieb*
-[View Map Here](https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/)
+[View Map here](https://sjg2202.github.io/oahu-urban-footprint/)
 
 ## Examined Geographic Area
 This web map focuses on Oʻahu, Hawaiʻi (Honolulu + surrounding districts), highlighting the island’s urban footprint and conserved land areas.
